@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+
+    <title>Todo app</title>
+</head>
+
+<body>
+
+    <div style="margin-top: 50px;" class="ui container">
+
+        <h1 class="ui center aligned header">Todo app</h1>
+
+        <p>Hello, you are being served by vm @ {{ipaddr}} (hostname: {{hostname}})  </p>
+
+        <!-- action="/add" calls the add function in app.py -->
+        <form class="ui form" action="/add" method="POST">
+            <div class="field">
+                <label for="title">Todo Title</label>
+                <input type="text" name="title" placeholder="Enter todo...">
+                <br>
+                <button class="ui blue button" type="submit">Add</button>
+            </div>
+        </form>
+
+        {% for todo in todo_list %}
+            <div>
+                <p> {{ todo.id }} | {{ todo.title }} | {{ todo.complete }} </p>
+                {% if todo.complete == False %}
+                    <span class="ui gray label">Not Complete</span>
+                {% else %}
+                    <span class="ui green label">Complete</span>
+                {% endif %}
+
+                <!-- <a> tag sends GET request instead of POST, so it errors as update function only allows POST.  Use form+button instead -->
+                <!-- <a method="POST" class="ui blue button" href="/update/{{ todo.id }}">Update</a>
+                <a method="POST" class="ui red button" href="/delete/{{ todo.id }}">Delete</a> -->
+
+                <form class="ui inline form" style="display: inline-block;" action="/update/{{ todo.id }}" method="POST">
+                    <button class="ui blue button" type="submit">Update</button>
+                </form>
+                <form class="ui inline form" style="display: inline-block;" action="/delete/{{ todo.id }}" method="POST">
+                    <button class="ui red button" type="submit">Delete</button>
+                </form>
+                
+            </div>
+        {% endfor %}
+
+    </div>
+
+</body>
+
+</html>

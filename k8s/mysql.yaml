@@ -1,6 +1,7 @@
 # https://kubernetes.io/docs/tasks/run-application/run-single-instance-stateful-application/
 # v1 - commented out volumeMounts and volumes section just to be able to start MySQL 
-#
+# v2 - initialize MySQL through defining init.sql in ConfigMap 
+#      and map to /docker-entrypoint-initdb.d which Docker will exec all sql files in the dir (see https://hub.docker.com/_/mysql)
 apiVersion: v1
 kind: Service
 metadata:
@@ -40,6 +41,12 @@ spec:
         # volumeMounts:
         # - name: mysql-persistent-storage
         #   mountPath: /var/lib/mysql
+        
+        # Initialize MySQL using ConfigMap 
+        volumeMounts:
+        - name: mysql-init-script
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
         resources:
           requests:
             memory: "256Mi" 
@@ -51,3 +58,9 @@ spec:
       # - name: mysql-persistent-storage
       #   persistentVolumeClaim:
       #     claimName: mysql-pv-claim
+      #
+      # Initialize MySQL using ConfigMap 
+      volumes:
+      - name: mysql-init-script
+        configMap:
+          name: mysql-init-script

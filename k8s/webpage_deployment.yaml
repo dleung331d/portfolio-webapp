@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myflaskwebservice-adminer-svc
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: myflaskwebservice-mysql
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myflaskwebservice-mysql-deployment
+  labels:
+    app: myflaskwebservice-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myflaskwebservice-mysql
+  template:
+    metadata:
+      labels:
+        app: myflaskwebservice-mysql
+    spec:
+      containers:
+      - name: myflaskwebservice-mysql
+        image: mysql
+        #command: ["--init-file", "/data/application/init.sql"]
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: password
+        ports:
+        - containerPort: 3306
+        resources:
+          requests:
+            memory: "16Mi" 
+            cpu: "50m"    # 500milliCPUs (1/2 CPU)
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+      - name: myflaskwebservice-adminer
+        image: adminer
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "16Mi" 
+            cpu: "50m"    # 500milliCPUs (1/2 CPU)
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: myflaskwebservice-deployment
+#   labels:
+#     app: myflaskwebservice
+# spec:
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: myflaskwebservice
+#   template:
+#     metadata:
+#       labels:
+#         app: myflaskwebservice
+#     spec:
+#       containers:
+#       - name: myflaskwebservice
+#         image: dleung331d/webpage
+#         ports:
+#         - containerPort: 5000
+#         resources:
+#           requests:
+#             memory: "16Mi" 
+#             cpu: "50m"    # 500milliCPUs (1/2 CPU)
+#           limits:
+#             memory: "64Mi"
+#             cpu: "100m"

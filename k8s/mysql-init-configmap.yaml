@@ -1,10 +1,11 @@
 # https://medium.com/@AbhijeetKasurde/creating-mysql-pod-with-preloaded-database-2c01c002fdc3
-# v1 - June 6 - copy contents of init.sql to ConfigMap
+# v1  - June 6 - copy contents of init.sql to ConfigMap
+# v2  - June 8 - rename configmap to mysql-init-script-configmap for clarity
 
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mysql-init-script
+  name: mysql-init-script-configmap
 data:
   init.sql: |
     CREATE DATABASE IF NOT EXISTS MySQLDB;
@@ -21,3 +22,9 @@ data:
     );
 
     GRANT ALL PRIVILEGES ON MySQLDB.* TO 'todo-app'@'%';
+
+    INSERT INTO todo ( title, complete) values ( CONCAT( 'Init.sql ran - ', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s') ), FALSE);
+    INSERT INTO todo ( title, complete) values ( 'Todo item 1', FALSE);
+    INSERT INTO todo ( title, complete) values ( 'Todo item 2', FALSE);
+
+    

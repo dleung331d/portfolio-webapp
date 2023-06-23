@@ -1,6 +1,7 @@
 version: '3'
 services: 
-  myflaskwebservice:
+  # DL: Rename from myflaskwebservice
+  my-webpage:
     # build context - use Dockerfile in this path to build
     # instead of using pre-built image
     # I suppose during early stages of dev, use build: .

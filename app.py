@@ -33,7 +33,10 @@ logger.addHandler(file_handler)
 
 logging.info('DLTEST Initializing Flask')
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = 'db'
+# When running this on Docker, simply refer to Docker container name, ie db
+# app.config['MYSQL_HOST'] = 'db'
+# When running on K8s, use K8s service name
+app.config['MYSQL_HOST'] = 'mysql-svc'
 app.config['MYSQL_USER'] = 'todo-app'
 app.config['MYSQL_PASSWORD'] = 'fea8bbcf9c185f838a46ecb794e05efa60f35f22ed945875aa1d2160d7d618da'
 app.config['MYSQL_DB'] = 'MySQLDB'

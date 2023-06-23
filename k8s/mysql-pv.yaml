@@ -6,20 +6,20 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: manual
+  storageClassName: local-storage
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/home/dleung331d/mysql-k8s-data"
+    path: "/mnt/mysql-data"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pv-claim
 spec:
-  storageClassName: manual
+  storageClassName: local-storage
   accessModes:
     - ReadWriteOnce
   resources:

@@ -9,8 +9,9 @@ kubectl apply -f mysql-init-configmap.yaml
         # If the above cmd was stuck / not returning, can try this one
         # k delete pv mysql-pv-volume --grace-period=0 --force
 
-# Not needed after using StatefulSet and no pv is defined    
-# k apply -f mysql-pv.yaml
+# Not needed when using minikube after using StatefulSet and no pv is defined    
+# we need to create pv and pvc for k8s cluster created w/kubeadm
+kubectl apply -f mysql-pv.yaml
 
 # Create Deployment
 kubectl apply -f mysql.yaml

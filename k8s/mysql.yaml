@@ -28,7 +28,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql
+  name: mysql-svc
   labels:
     app: mysql
     app.kubernetes.io/name: mysql
@@ -61,7 +61,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
-spec:
+spec:  
   selector:
     matchLabels:
       app: mysql
@@ -74,6 +74,16 @@ spec:
         app: mysql
         app.kubernetes.io/name: mysql
     spec:
+      # Node affinity rule - only start MySQL on nodes labelled with app: mysql (see k8s/label-mysql-node.sh)
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mysql
       initContainers:
       - name: init-mysql
         image: mysql
@@ -229,11 +239,17 @@ spec:
         #   path: /home/dleung331d/webpage/init.sql
         configMap:
           name: mysql-init-script-configmap
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 1Gi
+      - name: data
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+  # This below block used to work on minikube as it sets up a default storage class that provisions dynamic storage volumes automatically
+  # , which allows you to create PVCs without explicitly creating PVs, and the storage is allocated dynamically.
+  # We are now moving to a cluster setup with kubeadm
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: data
+  #   spec:
+  #     accessModes: ["ReadWriteOnce"]
+  #     resources:
+  #       requests:
+  #         storage: 1Gi

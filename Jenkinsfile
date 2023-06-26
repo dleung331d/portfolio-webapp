@@ -14,5 +14,11 @@ ls -la'''
       }
     }
 
+    stage('Docker build') {
+      steps {
+        sh 'docker build .'
+      }
+    }
+
   }
 }

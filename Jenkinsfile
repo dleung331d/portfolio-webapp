@@ -16,7 +16,11 @@ ls -la'''
 
     stage('Docker build') {
       steps {
-        sh 'docker build .'
+        sh '''id
+pwd
+ls
+docker
+docker build .'''
       }
     }
 

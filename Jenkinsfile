@@ -7,5 +7,12 @@ pipeline {
       }
     }
 
+    stage('List files') {
+      steps {
+        sh '''pwd
+ls -la'''
+      }
+    }
+
   }
 }

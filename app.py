@@ -4,17 +4,16 @@
 #   url_for         - class for building URL?
 from flask import Flask, request, render_template, redirect, url_for
 from flask_mysqldb import MySQL
-# Added in test branch
 # to get vm hostname
 import socket
 
-# Tried adding timezone to log entries but doesn't work.  Can see timestamp only for now
+# TODO: adding timezone to log entries
 import logging
 import datetime
 
 # Set up logging configuration
 logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s - %(message)s')
-# Tried adding timezone to log entries but doesn't work.  Can see timestamp only for now
+# TODO: adding timezone to log entries
 #logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %Z%z - %(levelname)s - %(message)s')
 
 # Get the root logger
@@ -31,14 +30,17 @@ file_handler.setFormatter(formatter)
 # Add the file handler to the logger
 logger.addHandler(file_handler)
 
-logging.info('DLTEST Initializing Flask')
+logging.info('Initializing Flask')
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = 'db'
+# When running this on Docker, simply refer to Docker container name, ie db
+# app.config['MYSQL_HOST'] = 'db'
+# When running on K8s, use K8s service name
+app.config['MYSQL_HOST'] = 'mysql-svc'
 app.config['MYSQL_USER'] = 'todo-app'
 app.config['MYSQL_PASSWORD'] = 'fea8bbcf9c185f838a46ecb794e05efa60f35f22ed945875aa1d2160d7d618da'
 app.config['MYSQL_DB'] = 'MySQLDB'
 
-logging.info('DLTEST MySQL')
+logging.info('Initializing MySQL client')
 mysql = MySQL(app)
 
 
@@ -85,7 +87,7 @@ class Todo:
 
 @app.route('/')
 def index():
-    logging.info('DLTEST route /')
+    logging.info('route /')
     todos = Todo.get_all()
     hostname = socket.gethostname()
     ipaddr = socket.gethostbyname(hostname)
@@ -94,7 +96,7 @@ def index():
 # Use <form method="POST"> to submit request
 @app.route('/add', methods=['POST'])
 def add():
-    logging.info('DLTEST route /add')
+    logging.info('route /add')
     title = request.form['title']
     Todo.add(title)
     return redirect(url_for('index'))
@@ -102,7 +104,7 @@ def add():
 # Use <form method="POST"> to submit request
 @app.route('/update/<int:id>', methods=['POST'])
 def update(id):    
-    logging.info('DLTEST route /update')
+    logging.info('route /update')
     # Fetch 
     cur = mysql.connection.cursor()
     cur.execute("SELECT title, complete FROM todo WHERE id=%s", (id,))
@@ -118,10 +120,9 @@ def update(id):
 # Use <form method="POST"> to submit request
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
-    logging.info('DLTEST route /delete')
+    logging.info('route /delete')
     Todo.delete(id)
     return redirect(url_for('index'))
-
 
 # DL: app.run will be executed by docker, so don't need this
 # if __name__ == '__main__':

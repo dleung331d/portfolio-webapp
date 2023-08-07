@@ -1,40 +1,29 @@
 version: '3'
 services: 
-  myflaskwebservice:
-    # build context - use Dockerfile in this path to build
-    # instead of using pre-built image
-    # I suppose during early stages of dev, use build: .
-    # once your image is stable, can switch to image:<name> 
-    # so you don't need to re-build every time?
+  my-webpage:
     build: .
+    container_name: my-webpage
     env_file: .env
     ports:
       - "5000:5000"
-    # Bind mount curr dir on host to container path /usr/src/app
-    # File changes by both the host and container are reflected immediately 
-    # - host file changes: allows changing code on host and container flask auto restarts
-    # - container file changes: host can see output logs created in container
     volumes:
       - .:/usr/src/app
-  db:
+  mysql-svc:
     image: mysql
     container_name: mysql
-    # Run init.sql to create db/user/table if not exists and grant privilege to user "todo-app"
-    command: --init-file /data/application/init.sql
+    command: --init-file /data/application/init-MySQL.sql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password    
     volumes:
       # Bind mount
-      - ./init.sql:/data/application/init.sql
-      # Named volume is managed by docker
-      # - persists after container is down
-      # - needs to be defined in the standalone "volumes" section
+      - ./init-MySQL.sql:/data/application/init-MySQL.sql
       - mysql-volume:/var/lib/mysql
   
   # The adminer image is a web-based database management tool that allows you to manage MySQL, PostgreSQL, and other database systems through a web interface.
   adminer:
     image: adminer
+    container_name: adminer
     restart: always
     ports:
       - 8080:8080

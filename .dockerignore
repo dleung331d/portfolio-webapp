@@ -1,0 +1,21 @@
+# .dockerignore
+
+# Directories
+__pycache__
+k8s
+ansible
+Vagrant
+
+# Hidden directories / files
+.vagrant
+.git
+.gitignore
+.vscode
+
+# Files
+*.log
+*.sql
+*.md
+!README*.md
+
+Vagrantfile

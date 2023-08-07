@@ -1,0 +1,18 @@
+# This svc was created for testing
+# It is an example of exposing service externally without using Ingress Controller
+# Require Load Balancer like metallb to assign external IP for this loadbalancer service
+# Then point your example-domain.com to this external IP (on DNS or Win10 /etc/hosts)
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-webpage-lb-svc
+spec:
+  selector:
+    app: my-webpage
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 5000
+  type: LoadBalancer
+  

@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ingress-controller-cert
+spec:
+  secretName: tls-secret
+  issuerRef:
+    name: myclusterissuer
+    kind: ClusterIssuer
+  duration: 24h
+  dnsNames:
+    - mywebpage.com

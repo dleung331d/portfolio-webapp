@@ -1,0 +1,12 @@
+[users]
+k8s-main
+k8s-worker-1
+k8s-worker-2
+
+
+[control-plane]
+k8s-main
+
+[workers]
+k8s-worker-1
+k8s-worker-2

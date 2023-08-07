@@ -1,0 +1,154 @@
+---
+- hosts: "control-plane, workers"
+  remote_user: ansible
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  
+  tasks:
+   
+   - name: Make the Swap inactive
+     command: swapoff -a
+
+   - name: Remove Swap entry from /etc/fstab.
+     lineinfile:
+       dest: /etc/fstab
+       regexp: swap
+       state: absent
+
+   - name: Update apt cache
+     apt:
+       update_cache: yes
+
+   - name: Installing Prerequisites for Kubernetes
+     apt: 
+       name:
+         - apt-transport-https
+         - ca-certificates
+         - curl
+         - gnupg-agent
+         - gnupg
+         - vim
+         - software-properties-common
+       state: present
+
+   # https://forum.linuxfoundation.org/discussion/862825/kubeadm-init-error-cri-v1-runtime-api-is-not-implemented
+   # Add Docker repository
+   # add --yes in "sudo gpg --dearmor ..." so it doesn't prompt you for override and cause ansible to get stuck
+   - name: Create keyrings directory
+     shell: sudo install -m 0755 -d /etc/apt/keyrings 
+   - name: Import Docker GPG key
+     shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+   - name: Set permissions for Docker GPG key
+     shell: sudo chmod a+r /etc/apt/keyrings/docker.gpg 
+   - name: Add Docker repository to sources.list
+     shell: |
+       echo "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  #  - name: Add Docker’s official GPG key
+  #    apt_key:
+  #      url: https://download.docker.com/linux/ubuntu/gpg
+  #      state: present
+
+  #  - name: Add Docker Repository
+  #    apt_repository:
+  #      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+  #      state: present
+  #      filename: docker
+  #      mode: 0600
+
+   - name: Update apt cache for docker
+     apt:
+       update_cache: yes
+
+   - name: Install Docker Engine.
+     apt: 
+       name:
+         - docker-ce
+         - docker-ce-cli
+         - containerd.io
+       state: present
+
+   # https://forum.linuxfoundation.org/discussion/862825/kubeadm-init-error-cri-v1-runtime-api-is-not-implemented
+   - name: Remove config.toml to enable cri plugin
+     file:
+       path: /etc/containerd/config.toml
+       state: absent
+       
+   - name: Restart containerd
+     shell: systemctl restart containerd
+     
+   - name: Enable service docker, and enable persistently
+     service: 
+       name: docker
+       enabled: yes
+
+   - name: Add Google official GPG key
+     apt_key:
+       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+       state: present
+
+   - name: Add Kubernetes Repository
+     apt_repository:
+       repo: deb http://apt.kubernetes.io/ kubernetes-xenial main 
+       state: present
+       filename: kubernetes
+       mode: 0600
+   # Install k8s v1.25 to avoid known issue of containerd https://forum.linuxfoundation.org/discussion/862825/kubeadm-init-error-cri-v1-runtime-api-is-not-implemented
+   - name: Installing Kubernetes Cluster Packages.
+     apt: 
+       name:
+         - kubeadm=1.25.0-00
+         - kubectl=1.25.0-00
+         - kubelet=1.25.0-00
+       state: present
+       update_cache: yes
+   # Workaround Vagrant VMs can be accessed with eth1 and when VMs join k8s cluster, the IP from eth0 is used 
+   # so when u run kubectl logs <pod>, it cannot reach the node to get the logs
+   # https://github.com/halfcrazy/website/commit/a64edb86b5e753215529fdb73b1c58796559faee
+   #
+   # Manual workaround: set KUBELET_EXTRA_ARGS in k8s VM's /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+   # Environment="KUBELET_EXTRA_ARGS=--node-ip=<k8s VM IP>"
+   # For example, k8s-main VM
+   # Environment="KUBELET_EXTRA_ARGS=--node-ip=192.168.150.10"
+   # k8s-worker-1
+   # Environment="KUBELET_EXTRA_ARGS=--node-ip=192.168.150.11"
+   #
+   # TODO: automate the above with ansible
+   # (Below doesn't work)
+   #  - name: Configure node ip
+   #    lineinfile:
+   #      path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+   #      # line: KUBELET_EXTRA_ARGS=--node-ip={{ ansible_host }}
+   #      line: Environment="KUBELET_EXTRA_ARGS=--node-ip={{ ansible_facts['ansible_eth1']['ipv4']['address'] }}"
+       
+   - name: Enable service kubelet, and enable persistently
+     service: 
+       name: kubelet
+       enabled: yes
+       
+   # Note This block restarts the VMs successfully but still returns an error so ansible will fail when it isn't really a failure
+  #  - name: Reboot all the Kubernetes nodes
+  #    shell: sleep 2 && shutdown -r now "Rebooting for Kubernetes installation"
+  #    async: 0
+  #    poll: 0
+  #    become: yes
+  #    ignore_errors: true
+   # Solution: Ansible v2.7 has reboot module but we are on v2.5 due to using Ubuntu 18.04.
+   # Install v2.9 by adding ansible PPA
+   # sudo apt-add-repository --yes --update ppa:ansible/ansible
+   # sudo apt-get update
+   # sudo apt-get install -y ansible
+   - name: Reboot all the Kubernetes nodes
+     ansible.builtin.reboot:
+       reboot_timeout: 300
+
+   - name: Wait for the server to come back online
+     wait_for_connection:
+       delay: 10
+       timeout: 300
+       sleep: 5
+
+...

@@ -1,5 +1,12 @@
 version: '3'
 services: 
+  api:
+    build: ./api
+    container_name: api
+    ports:
+      - "80:80"
+    volumes:
+      - ./api:/usr/src/app
   my-webpage:
     build: .
     container_name: my-webpage

@@ -1,0 +1,10 @@
+fastapi
+pydantic
+uvicorn
+mysql-connector-python
+jinja2
+# OAuth2 https://www.youtube.com/watch?v=5GxQ1rLTwaU
+python-multipart
+# Password hashing / JWT token
+python-jose[cryptography]
+passlib[bcrypt]

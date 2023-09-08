@@ -693,4 +693,68 @@ To change how long the certificate is valid for / change certificate validty / c
 
 ---
 
+
+# 5. Alternate Setup (Run on Docker)
+
+###############################################
+###On k8s-control VM as vagrant user:
+###############################################
+
+% cd /vagrant
+
+% docker-compose up -d
+
+
+###############################################
+###On Windows
+###############################################
+
+Open browser and go to http://<k8s-control IP address>:5000
+
+
+
+# 6. API 
+
+API component is being developed at the moment.  For simplicity, it is being tested by running the app on docker instead of k8s.
+
+## Setup
+
+###############################################
+###On Windows
+###############################################
+
+% vagrant up k8s-control
+% vagrant ssh k8s-control
+
+###############################################
+###On k8s-control VM as vagrant user:
+###############################################
+
+% cd /vagrant
+% docker-compose up -d --build
+
+All 4 components should be running (api, my-webpage, MySQL-svc, adminer)
+% docker ps 
+vagrant@k8s-control:/vagrant$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED
+STATUS          PORTS                                       NAMES
+086b4eaee0c4   vagrant_api          "uvicorn fastapi-mai…"   13 minutes ago   
+Up 13 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp           api
+f66d86694844   vagrant_my-webpage   "flask run"              21 minutes ago   
+Up 21 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp   my-webpage        
+c72837a1e011   adminer              "entrypoint.sh php -…"   3 weeks ago      
+Up 23 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   adminer
+1f50d5fb49f7   mysql                "docker-entrypoint.s…"   3 weeks ago      
+Up 23 minutes   3306/tcp, 33060/tcp                         mysql
+
+###############################################
+###On Windows
+###############################################
+
+To access FastAPI docs, open browser 
+    http://<k8s-control IP address>/docs
+
+To access Todo webapp, open browser
+    http://<k8s-control IP address>:5000
+
 # End

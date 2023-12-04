@@ -11,10 +11,10 @@ COPY fast-api-requirements.txt fast-api-requirements.txt
 RUN pip install -r fast-api-requirements.txt
 
 # Contents that are more likely to change during development
-COPY fastapi-main.py .
+COPY fastapi_main.py .
 
 RUN ls -la
 
 # IMPORTANT: Remove --reload for PRODUCTION use!!!!!!!!!!!!!!!!!!!!!!!!!
 # TESTING in DEBUG MODE
-CMD ["uvicorn", "fastapi-main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]
+CMD ["uvicorn", "fastapi_main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]

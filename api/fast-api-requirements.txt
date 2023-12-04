@@ -5,6 +5,7 @@ mysql-connector-python
 jinja2
 # OAuth2 https://www.youtube.com/watch?v=5GxQ1rLTwaU
 python-multipart
-# Password hashing / JWT token
+# generate JWT (JSON web token)
 python-jose[cryptography]
+# Password hashes - bcrypt is one of the algos
 passlib[bcrypt]

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 # Support get_todo_by_query_parameters function to return more than 1 todos as JSON
-from typing import List
+from typing import List, Optional
 
 import mysql.connector
 import socket
@@ -49,6 +49,12 @@ app = FastAPI()
 class TodoCreate(BaseModel):
     title: str
     complete: bool = False
+
+class TodoUpdate(BaseModel):
+    id: int
+    # Default values set to None so that if client doesn't provide these fields, API won't reject their requests
+    title: Optional[str] = None
+    complete: Optional[bool] = None
 
 class Todo(BaseModel):
 
@@ -110,11 +116,35 @@ class Todo(BaseModel):
         return last_inserted_id
 
     @staticmethod
-    def update(todo: "Todo"):
-        cur = connection.cursor()
-        cur.execute("UPDATE todo SET title=%s, complete=%s WHERE id=%s", (todo.title, todo.complete, todo.id))
-        connection.commit()
-        cur.close()
+    def update(todo: "TodoUpdate"):        
+        fields=[]
+        values=[]
+        for field, value in vars(todo).items():            
+            # Do not add the following into "fields" variable
+            # - key field, ie "id" 
+            # - fields that are not included in the PUT request 
+            if field == "id" or value == None:
+                continue
+            # Add single quotes around string values for UPDATE SQL statement
+            if isinstance(value, str):
+                fields.append(f"{field}=%s")                
+                values.append(f"'{value}'")
+            else:
+                fields.append(f"{field}=%s")
+                values.append(value)
+
+        values.append(todo.id)  # Add the ID for the WHERE clause
+        update_clause = f"UPDATE todo SET {', '.join(fields)} WHERE id=%s"
+        full_query = update_clause % tuple(values)
+
+        # If there are fields to update
+        if fields:
+            cur = connection.cursor()
+            cur.execute(full_query)
+            connection.commit()
+            cur.close()
+        else:
+            raise HTTPException(status_code=204, detail="No fields provided for update")
 
     @staticmethod
     def delete(id):
@@ -135,7 +165,7 @@ def get_todo_by_query_parameters(
         return todos
         
     except mysql.connector.Error as e:
-        raise HTTPException(status_code=500, detail="Database Error")
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}" )
 
 @app.get("/todos/{todo_id}")
 def get_todo_by_id(todo_id: int) -> Todo:
@@ -158,7 +188,7 @@ def add_todo(todo: TodoCreate):
         raise HTTPException(status_code=500, detail="Database Error")
     
 @app.put("/todos/{todo_id}")
-def update_todo(todo_id: int, todo: Todo):
+def update_todo(todo_id: int, todo: TodoUpdate):
     try:
         if Todo.get_todo_by_id(todo_id) is None:
             raise HTTPException(status_code=404, detail=f"Todo with ID:{todo_id} does not exist")
@@ -166,7 +196,7 @@ def update_todo(todo_id: int, todo: Todo):
             Todo.update(todo)
             return Todo.get_todo_by_id(todo_id)
     except mysql.connector.Error as e:
-        raise HTTPException(status_code=500, detail="Database Error")
+        raise HTTPException(status_code=500, detail=f"Database Error {e}")
 
 @app.delete("/todos/{todo_id}", status_code=204)
 def delete_todo(todo_id: int):

@@ -117,8 +117,10 @@ Just install the tools that are needed for this project like docker, vagrant, an
 ## Additional notes
 
 ### Aliases
+
 I personally map "k" to kubectl command.
-alias k='kubectl'
+
+    alias k='kubectl'
 
 usually the "cd" commands are relative to the project root directory
 
@@ -161,6 +163,10 @@ I would like to thank the following content creators for their tutorials which t
 - Christian Lempa - Free SSL Certs in Kubernetes! Cert Manager Tutorial
     - https://www.youtube.com/watch?v=DvXkD0f-lhY
 
+- pixegami - PyTest • REST API Integration Testing with Python 
+    - https://www.youtube.com/watch?v=7dgQRVqF1N0
+    
+# 
 I am sure I missed some tutorials here and there.  Will try to add them back as soon as I remember which ones I missed.  
 
 ---
@@ -745,28 +751,32 @@ API component is being developed at the moment.  For simplicity, it is being tes
 All 4 components should be running (api, my-webpage, MySQL-svc, adminer)
 
 % docker ps 
-
-    vagrant@k8s-control:/vagrant$ docker ps
-    CONTAINER ID   IMAGE                COMMAND                  CREATED
-    STATUS          PORTS                                       NAMES
-    086b4eaee0c4   vagrant_api          "uvicorn fastapi-mai…"   13 minutes ago   
-    Up 13 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp           api
-    f66d86694844   vagrant_my-webpage   "flask run"              21 minutes ago   
-    Up 21 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp   my-webpage        
-    c72837a1e011   adminer              "entrypoint.sh php -…"   3 weeks ago      
-    Up 23 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   adminer
-    1f50d5fb49f7   mysql                "docker-entrypoint.s…"   3 weeks ago      
-    Up 23 minutes   3306/tcp, 33060/tcp                         mysql
-
-
+```bash
+vagrant@k8s-control:/vagrant$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED
+STATUS          PORTS                                       NAMES
+086b4eaee0c4   vagrant_api          "uvicorn fastapi-mai…"   13 minutes ago   
+Up 13 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp           api
+f66d86694844   vagrant_my-webpage   "flask run"              21 minutes ago   
+Up 21 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp   my-webpage        
+c72837a1e011   adminer              "entrypoint.sh php -…"   3 weeks ago      
+Up 23 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   adminer
+1f50d5fb49f7   mysql                "docker-entrypoint.s…"   3 weeks ago      
+Up 23 minutes   3306/tcp, 33060/tcp                         mysql
+```
 
 ###############################################<br>
 ###On Windows<br>
 ###############################################<br>
 
-To access FastAPI docs, open browser 
+To test FastAPI via browser, open 
     
     http://<k8s-control IP address>/docs
+
+To test FastAPI via pytest, run tests/test_api.py on k8s-control VM
+
+    cd /vagrant
+    pytest tests/test_api.py
 
 To access Todo webapp, open browser
     

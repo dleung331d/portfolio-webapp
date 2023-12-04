@@ -47,6 +47,7 @@ Vagrant.configure("2") do |config|
         end
         main.vm.provision "shell", inline: <<-SHELL
             echo "alias k='kubectl'" >> ~/.bashrc
+            echo "alias d='docker'" >> ~/.bashrc
             source ~/.bashrc
         SHELL
     end
@@ -126,6 +127,13 @@ Vagrant.configure("2") do |config|
             
                 # Before any installations
                 sudo apt-get update
+
+                # Install venv and pip for Python
+                sudo apt-get install -y python3-venv
+                sudo apt-get install -y python3-pip
+
+                # Install pytest
+                /usr/bin/python3 -m pip install pytest pydantic
 
                 # Install curl
                 if ! command -v curl &> /dev/null; then
